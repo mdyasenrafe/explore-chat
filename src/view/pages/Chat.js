@@ -39,7 +39,7 @@ export default function Chat() {
         <Grid container>
           <Grid item xs={12} md={2}>
             {/* height would be window size */}
-            <div className="border border-[#e1e1e1] p-2  overflow-y-scroll sticky top-0 md:h-[100vh] hidden md:grid">
+            <div className="border border-[#e1e1e1] p-2  overflow-y-scroll sticky top-0 md:h-[100vh]">
               <div>
                 {users.map((user) => (
                   <UsersList
