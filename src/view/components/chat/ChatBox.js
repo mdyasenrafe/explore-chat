@@ -34,27 +34,27 @@ const Chatbox = ({ selectedUser }) => {
         receiverEmail: selectedUser.email,
         text: newMessage,
       });
-      setMessages([
-        ...messages,
+
+      // Use the functional form of setMessages to update messages
+      setMessages((prevMessages) => [
+        ...prevMessages,
         {
           text: newMessage,
           sender: "user",
         },
       ]);
+
       setNewMessage("");
     }
   };
 
   useEffect(() => {
-    // recive message twice
     socket.on("getMessage", (data) => {
-      console.log(data, "new message message ");
       const newMessage = {
         text: data.text,
         sender: "other",
       };
-      console.log("messages ", ...messages);
-      setMessages([...messages, newMessage]);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
   }, [socket]);
 
