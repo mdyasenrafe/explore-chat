@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { Container, Grid } from "@mui/material";
 import loginImage from "../../assets/login.png";
+import { signInApi } from "../../network/api";
 
 export default function Login() {
   const [user, setUser] = useState({});
   const [error, setError] = useState({ text: "", error: false });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e, name) => {
+    const { value } = e.target;
     setUser({ ...user, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    console.log("submit");
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const res = await signInApi(user);
+    console.log(res);
   };
 
   return (
@@ -26,7 +28,7 @@ export default function Login() {
           <Grid item xs={12} md={6}>
             <div className="md:py-10">
               <h2 className="text-[36px] font-semibold">Welcome Back</h2>
-              <p className="text-[18px] font-[500]">
+              <p className="text-[18px] font-[500] mb-[24px] md:mb-0">
                 We are Happy to see you again. let's get started
               </p>
             </div>
@@ -37,7 +39,7 @@ export default function Login() {
                   type="email"
                   placeholder="Email"
                   className="w-full h-[48px] px-2 rounded-[8px] border border-[#e1e1e1] mt-[8px] text-[14px]"
-                  onChange={handleChange}
+                  onChange={(e) => handleChange(e, "email")}
                   required
                 />
               </div>
@@ -47,7 +49,7 @@ export default function Login() {
                   type="password"
                   placeholder="Password"
                   className="w-full h-[48px] px-2 rounded-[8px] border border-[#e1e1e1] mt-[8px] text-[14px]"
-                  onChange={handleChange}
+                  onChange={(e) => handleChange(e, "password")}
                   required
                 />
               </div>
