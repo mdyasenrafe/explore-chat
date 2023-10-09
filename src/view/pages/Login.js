@@ -2,20 +2,29 @@ import React, { useState } from "react";
 import { Container, Grid } from "@mui/material";
 import loginImage from "../../assets/login.png";
 import { signInApi } from "../../network/api";
+import { Toast } from "../components/common/Toast";
 
 export default function Login() {
-  const [user, setUser] = useState({});
-  const [error, setError] = useState({ text: "", error: false });
+  const [formData, setFormData] = useState({});
 
-  const handleChange = (e, name) => {
+  const handleChange = (e, fieldName) => {
     const { value } = e.target;
-    setUser({ ...user, [name]: value });
+    setFormData({ ...formData, [fieldName]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await signInApi(user);
-    console.log(res);
+    const response = await signInApi(formData);
+    Toast.fire({
+      icon: response.error ? "error" : "success",
+      title: response.message,
+    });
+    if (response.error) {
+      return;
+    } else {
+      localStorage.setItem("token", response.token);
+      window.location.href = "/";
+    }
   };
 
   return (
@@ -29,12 +38,12 @@ export default function Login() {
             <div className="md:py-10">
               <h2 className="text-[36px] font-semibold">Welcome Back</h2>
               <p className="text-[18px] font-[500] mb-[24px] md:mb-0">
-                We are Happy to see you again. let's get started
+                We are happy to see you again. Let's get started.
               </p>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-[24px]">
-                <label className="label">Name</label>
+                <label className="label">Email</label>
                 <input
                   type="email"
                   placeholder="Email"
