@@ -1,55 +1,62 @@
 import React, { useEffect, useState } from "react";
 import * as io from "socket.io-client";
-import { baseUrl, myProfileApi } from "../../../network/api";
-
-const socket = io.connect("http://localhost:8080");
+import { baseUrl, fetchMessageApi, myProfileApi } from "../../../network/api";
 
 const Chatbox = ({ selectedUser }) => {
-  const token = localStorage.getItem("token");
+  const [socket, setSocket] = useState(null);
+  const [myProfile, setMyProfile] = useState({});
+  const [messages, setMessages] = useState([]);
+  const [newMessageText, setNewMessageText] = useState("");
+
+  const userToken = localStorage.getItem("token");
+
   useEffect(() => {
-    if (token) {
+    const newSocket = io.connect(baseUrl);
+    setSocket(newSocket);
+
+    return () => newSocket.disconnect();
+  }, [userToken, selectedUser]);
+
+  useEffect(() => {
+    if (userToken) {
       fetchMyProfile();
     }
-  }, [token]);
+  }, [userToken]);
 
   const fetchMyProfile = async () => {
-    const response = await myProfileApi();
-    if (response.error) {
+    const profileResponse = await myProfileApi();
+    if (profileResponse.error) {
     } else {
-      setMyself(response.data);
+      setMyProfile(profileResponse.data);
     }
   };
-  const [myself, setMyself] = useState({});
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
 
   const handleInputChange = (e) => {
-    setNewMessage(e.target.value);
+    setNewMessageText(e.target.value);
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim() !== "") {
-      socket.emit("addUser", selectedUser._id);
+    if (newMessageText.trim() !== "") {
       socket.emit("sendMessage", {
         receiverEmail: selectedUser.email,
-        text: newMessage,
+        text: newMessageText,
+        senderId: myProfile._id,
       });
-
-      // Use the functional form of setMessages to update messages
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          text: newMessage,
+          text: newMessageText,
           sender: "user",
         },
       ]);
-
-      setNewMessage("");
+      setNewMessageText("");
     }
   };
 
   useEffect(() => {
+    if (!socket) return;
     socket.on("getMessage", (data) => {
+      console.log("getMessage ", data);
       const newMessage = {
         text: data.text,
         sender: "other",
@@ -59,16 +66,43 @@ const Chatbox = ({ selectedUser }) => {
   }, [socket]);
 
   useEffect(() => {
+    if (!socket) return;
     socket.on("getUsers", (data) => {
       console.log("getUsers ", data);
     });
   }, [socket]);
 
   useEffect(() => {
-    if (myself?._id) {
-      socket.emit("addUser", myself._id);
+    if (!socket) return;
+    if (selectedUser?._id) {
+      socket.emit("addUser", selectedUser._id);
     }
-  }, [socket, myself]);
+  }, [socket, selectedUser]);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (myProfile?._id) {
+      socket.emit("addUser", myProfile._id);
+    }
+  }, [socket, myProfile]);
+
+  useEffect(() => {
+    if (selectedUser && myProfile?._id) {
+      fetchMessages();
+    }
+  }, [selectedUser, myProfile]);
+
+  const fetchMessages = async () => {
+    const response = await fetchMessageApi(selectedUser._id);
+    if (response.error) {
+    } else {
+      const messages = response.messages.map((message) => ({
+        text: message.text,
+        sender: message.senderId === myProfile._id ? "user" : "other",
+      }));
+      setMessages(messages);
+    }
+  };
 
   return (
     <div>
@@ -115,7 +149,7 @@ const Chatbox = ({ selectedUser }) => {
                 type="text"
                 className="flex-grow rounded-l-lg p-2 focus:outline-none h-[48px]"
                 placeholder="Type a message..."
-                value={newMessage}
+                value={newMessageText}
                 onChange={handleInputChange}
               />
               <button

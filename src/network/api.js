@@ -1,12 +1,13 @@
 import axios from "axios";
 
-export const baseUrl = "http://localhost:8080/api/";
+export const baseUrl = "https://peopleconnect-d0zy.onrender.com/";
 
 const apiEndpoints = {
-  signup: "auth/signup",
-  signin: "auth/signin",
-  users: "auth/users",
-  myProfile: "auth/me",
+  signup: "api/auth/signup",
+  signin: "api/auth/signin",
+  users: "api/auth/users",
+  myProfile: "api/auth/me",
+  fetchMessage: "api/message/fetchMessage?receiverId=",
 };
 
 export const signInApi = async (userData) => {
@@ -53,6 +54,23 @@ export const signUpApi = async (userData) => {
 
 export const myProfileApi = async () => {
   const endpointUrl = `${baseUrl}${apiEndpoints.myProfile}`;
+  try {
+    const response = await axios.get(endpointUrl, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return {
+      error: error,
+      message: error.response.data.message,
+    };
+  }
+};
+
+export const fetchMessageApi = async (receiverId) => {
+  const endpointUrl = `${baseUrl}${apiEndpoints.fetchMessage}${receiverId}`;
   try {
     const response = await axios.get(endpointUrl, {
       headers: {
