@@ -7,7 +7,7 @@ const Chatbox = ({ selectedUser }) => {
   const [myProfile, setMyProfile] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessageText, setNewMessageText] = useState("");
-
+  // user token
   const userToken = localStorage.getItem("token");
 
   useEffect(() => {
